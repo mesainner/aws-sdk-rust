@@ -467,6 +467,7 @@ pub struct ObjectVersion {
 pub struct ObjectMetadata {
     pub last_modified: LastModified,
     pub e_tag: ETag,
+    pub objtype: Type,
     /// The class of storage used to store the object.
     pub storage_class: ObjectStorageClass,
     pub key: ObjectKey,
@@ -2474,6 +2475,10 @@ impl ObjectMetadataParser {
         let mut obj = ObjectMetadata::default();
         loop {
             let current_name = try!(peek_at_name(stack));
+            if current_name.len() == 0 {
+                break;
+            }
+
             if current_name == "LastModified" {
                 obj.last_modified = try!(LastModifiedParser::parse_xml("LastModified", stack));
                 continue;
@@ -2498,6 +2503,11 @@ impl ObjectMetadataParser {
                 obj.size = try!(SizeParser::parse_xml("Size", stack));
                 continue;
             }
+            if current_name == "Type" {
+                obj.objtype = try!(TypeParser::parse_xml("Type", stack));
+                continue;
+            }
+
             break;
         }
         try!(end_element(tag_name, stack));
